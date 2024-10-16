@@ -29,3 +29,15 @@ this part is from ENV.py :
                         lane_max_time_step[lane] = max_time_step
             
                     return lane_max_time_step
+
+
+then the reward depend on this highst time step for each lane: 
+
+                        # Sum the highest time steps across all lanes as the reward
+                          reward = sum(highest_time_steps.values())
+
+
+or still testing this approach : 
+
+                 # add reward for each lane based on the highest time step in that lane
+                    lane_rewards = [highest_time_steps[lane] for lane in highest_time_steps]
