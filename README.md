@@ -31,7 +31,7 @@ this part is from ENV.py :
                     return lane_max_time_step
 
 
-then the reward depend on this highst time step for each lane: 
+then the reward depends on this highest time step for each lane:
 
                         # Sum the highest time steps across all lanes as the reward
                           reward = sum(highest_time_steps.values())
