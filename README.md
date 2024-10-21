@@ -31,13 +31,33 @@ this part is from ENV.py :
                     return lane_max_time_step
 
 
-then the reward depends on this highest time step for each lane:
+Then the reward depends on this highest time step for each lane:
 
-                        # Sum the highest time steps across all lanes as the reward
-                          reward = sum(highest_time_steps.values())
+                            def calculate_reward4(self, previous_state, current_state):
+                                """
+                                Calculate the reward based on the difference between the highest time-step (most negative) in each lane before the action and after the action )
+                                """
+                                # Get the highest time steps for each lane in the previous and current_states
+                                pre_highest_time_steps = self.time_step_count2(previous_state)  # Previous highest time steps per lane
+                                #print(f"calculate_reward4 fun :")
+                                #print(f"previous_highest_time_steps: {pre_highest_time_steps}")
+                        
+                                cur_highest_time_steps = self.time_step_count2(current_state)  # Current highest time steps per lane
+                                #print(f"current_highest_time_steps: {cur_highest_time_steps}")
+                        
+                                #  The difference in the highest time steps for each lane
+                                highest_time_step_diffs = {lane:  cur_highest_time_steps[lane] - pre_highest_time_steps[lane] for lane in pre_highest_time_steps}
+                                print(f"difference in the highest time steps for each lane (current-previous) : {highest_time_step_diffs}")
+                        
+                                # The reward is the sum of the differences in the highest time steps for each lane
+                                total_reward = sum(highest_time_step_diffs.values())
+                        
+                                return total_reward
 
 
-or still testing this approach : 
-
-                 # add reward for each lane based on the highest time step in that lane
-                    lane_rewards = [highest_time_steps[lane] for lane in highest_time_steps]
+                        For Example:
+                        
+                              previous_highest_time_steps: {'-E1_0': -13, '-E2_0': 0, '-E3_0': 0, 'E0_0': -12}
+                              current_highest_time_steps: {'-E1_0': -7, '-E2_0': 0, '-E3_0': 0, 'E0_0': -13}
+                              difference in the highest time steps for each lane (current-previous) : {'-E1_0': 6, '-E2_0': 0, '-E3_0': 0, 'E0_0': -1}
+                              Cumulative reward based on calculate_reward4: 5
