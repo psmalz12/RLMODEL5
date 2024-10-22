@@ -76,6 +76,9 @@ Fluctuations in rewards might indicate that the environment is not deterministic
 
 
 Q-learning update rule
-                self.q_values[state][action] += self.learning_rate * (reward + gamma * max_next_q_value - self.q_values[state][action])
+                  
+                  
+                  
+                  self.q_values[state][action] += self.learning_rate * (reward + gamma * max_next_q_value - self.q_values[state][action])
 
 
