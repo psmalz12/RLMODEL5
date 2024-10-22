@@ -61,3 +61,18 @@ Then the reward depends on this highest time step for each lane:
                               current_highest_time_steps: {'-E1_0': -7, '-E2_0': 0, '-E3_0': 0, 'E0_0': -13}
                               difference in the highest time steps for each lane (current-previous) : {'-E1_0': 6, '-E2_0': 0, '-E3_0': 0, 'E0_0': -1}
                               Cumulative reward based on calculate_reward4: 5
+
+
+
+
+![RLMODEL5 - 500 ep - reward4](https://github.com/user-attachments/assets/f616f896-ba87-4ad4-bb8d-5ffe999fc1f1)
+
+![RLMODEL5 -2 - 500 ep - reward4](https://github.com/user-attachments/assets/c2ad3a34-8132-4ace-bd49-f64b14ac5cff)
+
+
+Here, the Q-values have converged, which indicates that the agent has learned a stable and consistent policy for choosing actions. The agent now knows, for a given state, which actions tend to gain the best long-term rewards.
+
+Fluctuations in rewards might indicate that the environment is not deterministic. This could be due to traffic variability, random actions taken for exploration, or other dynamic factors affecting the agent's immediate rewards. see sutton p.545
+
+
+
