@@ -75,4 +75,7 @@ Here, the Q-values have converged, which indicates that the agent has learned a 
 Fluctuations in rewards might indicate that the environment is not deterministic. This could be due to traffic variability, random actions taken for exploration, or other dynamic factors affecting the agent's immediate rewards. see sutton p.545
 
 
+Q-learning update rule
+                self.q_values[state][action] += self.learning_rate * (reward + gamma * max_next_q_value - self.q_values[state][action])
+
 
