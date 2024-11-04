@@ -1,6 +1,5 @@
 
-
-The agent will add time step +(-1) each time he is seen in the env (window of 30 m) 
+ Will add time step +1 for a vehicle each time it is seen in the env (window of 30 m) 
 
 
 ![snip](https://github.com/user-attachments/assets/7b7ef096-d9dd-44a7-980c-05f80babfb51)
