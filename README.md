@@ -8,59 +8,36 @@ The agent will add time step +(-1) each time he is seen in the env (window of 30
 
 this part is from ENV.py :
 
-             def time_step_count2(self, state):
-                    """
-                    Calculate the highest (most negative) time step for all vehicles in each lane
-                    key is the lane and the value is the most negative time step
-                    """
-                    lane_max_time_step = {}
             
-                    # Iterate over each lane in the state (skip the current_phase)
-                    for lane, vehicles in state:
-                        if lane == "current_phase":
-                            continue  # Skiping traffic light phase info
-            
-                        # find the most negative (smallest) time step for all veh in this lane
-                        if vehicles:
-                            max_time_step = min(vehicle[1] for vehicle in vehicles)  # Find the most negative time step
-                        else:
-                            max_time_step = 0  # If no vehicles in the lane set to 0
-            
-                        lane_max_time_step[lane] = max_time_step
-            
-                    return lane_max_time_step
 
 
 Then the reward depends on this highest time step for each lane:
 
-                            def calculate_reward4(self, previous_state, current_state):
-                                """
-                                Calculate the reward based on the difference between the highest time-step (most negative) in each lane before the action and after the action )
-                                """
-                                # Get the highest time steps for each lane in the previous and current_states
-                                pre_highest_time_steps = self.time_step_count2(previous_state)  # Previous highest time steps per lane
-                                #print(f"calculate_reward4 fun :")
-                                #print(f"previous_highest_time_steps: {pre_highest_time_steps}")
-                        
-                                cur_highest_time_steps = self.time_step_count2(current_state)  # Current highest time steps per lane
-                                #print(f"current_highest_time_steps: {cur_highest_time_steps}")
-                        
-                                #  The difference in the highest time steps for each lane
-                                highest_time_step_diffs = {lane:  cur_highest_time_steps[lane] - pre_highest_time_steps[lane] for lane in pre_highest_time_steps}
-                                print(f"difference in the highest time steps for each lane (current-previous) : {highest_time_step_diffs}")
-                        
-                                # The reward is the sum of the differences in the highest time steps for each lane
-                                total_reward = sum(highest_time_step_diffs.values())
-                        
-                                return total_reward
-
+                                    def calculate_reward(self, previous_state, new_state):
+                                            """
+                                            Calculate the reward based on the time step changes in all lanes
+                                            """
+                                            reward = 0
+                                            # compare previous and new states
+                                            for lane_index in range(len(previous_state)):
+                                                prev_time_step = previous_state[lane_index]
+                                                new_time_step = new_state[lane_index]
+                                    
+                                                if new_time_step > prev_time_step:
+                                                    reward -= 1  # increasing time steps
+                                                elif new_time_step < prev_time_step:
+                                                    reward += 1  # decreas time steps
+                                    
+                                            return reward
 
                         For Example:
                         
-                              previous_highest_time_steps: {'-E1_0': -13, '-E2_0': 0, '-E3_0': 0, 'E0_0': -12}
-                              current_highest_time_steps: {'-E1_0': -7, '-E2_0': 0, '-E3_0': 0, 'E0_0': -13}
-                              difference in the highest time steps for each lane (current-previous) : {'-E1_0': 6, '-E2_0': 0, '-E3_0': 0, 'E0_0': -1}
-                              Cumulative reward based on calculate_reward4: 5
+                              ![image](https://github.com/user-attachments/assets/8279417f-7e43-4623-9760-7d344039479e)
+
+and this is how store state action pairs: 
+where we have 16,384 possible state action pairs 
+![image](https://github.com/user-attachments/assets/49e7a7e9-789f-4289-8c39-3a925112fe18)
+
 
 
 
