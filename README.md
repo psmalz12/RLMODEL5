@@ -41,15 +41,14 @@ where we have 16,384 possible state action pairs
 
 
 
+![RLMODEL 7-dif flow- 3000ep at 100 ep- reward](https://github.com/user-attachments/assets/3c7458b2-e249-49e5-b655-5e912b8e7e14)
+![RLMODEL 7-dif flow- 3000ep 2- reward](https://github.com/user-attachments/assets/0f77eff1-c267-46db-8fa5-b2dd642eff37)
 
-![RLMODEL5 - 500 ep - reward4](https://github.com/user-attachments/assets/f616f896-ba87-4ad4-bb8d-5ffe999fc1f1)
-
-![RLMODEL5 -2 - 500 ep - reward4](https://github.com/user-attachments/assets/c2ad3a34-8132-4ace-bd49-f64b14ac5cff)
 
 
 Here, the Q-values have converged, which indicates that the agent has learned a stable and consistent policy for choosing actions. The agent now knows, for a given state, which actions tend to gain the best long-term rewards.
 
-Fluctuations in rewards might indicate that the environment is not deterministic. This could be due to traffic variability, random actions taken for exploration, or other dynamic factors affecting the agent's immediate rewards. see sutton p.545
+
 
 
 Q-learning update rule
