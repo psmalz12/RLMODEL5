@@ -1,135 +1,152 @@
 import traci
-from RL_agent import RL
-from env import Env
-import time
-from metric import plot_rewards2
+from RL_agent3 import RL  
+from RL_agent2 import RL as Baseline  
+from env3 import Env
+from metric import plt_total_reward_steps_per_episode33
 
+
+# here without GUI and run both RL and Baseline
+# it show the avg reward for the whole episode
 
 class RLRunnerSUMO:
     def __init__(self, epsilon_point, RL_Agent, algo_name, junction_id, episodes):
-        # Init RL agent hyperparameters
-        self.epsilon = 1  #  high mean more explore new action & low exploit the action with the highest q-value
-        self.learning_rate = 0.2  # low slower update the q-value and higher opposite
-        self.gamma = 0.9  # high long term reward & low immediate reward (short term)
+        # Initialize RL agent hyperparameters
+        self.epsilon = 1 # high mean more explore new action & low exploit the action with the highest q-value
+        self.learning_rate = 0.2 # low slower update the q-value and higher opposite
+        self.gamma = 0.9 # high long term reward & low immediate reward (short term)
         self.epsilon_decay_rate = 0.4  # decay rate for epsilon high will decrease epsilon faster overtime and lead to exploit (depend on q-value of A) and the opposite correct
-        self.min_epsilon = 0.05  # Min epsilon value
-        self.epsilon_point = epsilon_point  # epsilon decay point
-        self.junction_id = junction_id  # Traffic light junction to control
-        self.episodes = episodes  # Total episodes to run
+        self.min_epsilon = 0.05
+        self.epsilon_point = epsilon_point # episode number where epsilon reaches its min value
+        self.junction_id = junction_id
+        self.episodes = episodes
 
-        # Init RL agent
-        self.algo_name = algo_name  # algo
-        self.rl_agent = RL_Agent(self.epsilon, self.learning_rate, self.epsilon_decay_rate, self.min_epsilon, self.epsilon_point)
-        self.env = Env()  # Init SUMO environment
-        self.total_rewards = []  # Store total rewards per episode
-        self.total_episode_reward = []  # Store total rewards for each episode
-        self.total_episode_reward_sn = []  # Store total rewards every 100 episodes sn = snip
+        # Init RL agent or Baseline agent
+        self.algo_name = algo_name
+        self.rl_agent = RL_Agent(self.epsilon, self.learning_rate, self.epsilon_decay_rate, self.min_epsilon,
+                                 self.epsilon_point)
+        self.env = Env()
+        self.total_episode_reward = []
+        self.total_episode_reward_sn = []
+        self.avg_episode_rewards = []  # store avg rewards per episode /50 steps
+        self.sn_reward = []  # store rewards every 10 episodes
+        self.sn_avg_reward = []  # store avg rewards every 10 episodes
 
     def run(self):
         for episode in range(self.episodes):
             print(f"\n====== Starting Episode {episode + 1}/{self.episodes} ======")
-
-            # Reset env and get the init state
-            self.env.reset2()
+            self.env.reset(self.junction_id)  # reset and set state
             state = self.env.state
-            total_episode_reward = 0  # total reward for this episode
+            total_episode_reward = 0
             done = False
             steps_in_episode = 0
-            # Decay epsilon for exploration-exploitation
             self.rl_agent.decay_epsilon(episode)
 
-            while not done and steps_in_episode < 50: # 2 cond just to make sure
-                print(f"\n====== New Time step Count {steps_in_episode +1} in episode: {episode}==========")
+            while not done and steps_in_episode < 50:
+                print(f"\n====== Time step {steps_in_episode + 1} in episode {episode + 1} ({self.algo_name})=======")
+                steps_in_episode += 1
 
-                print(f"\n====== State Before taken Action (lane(vehicle  ID, vehicle time step  , vehicle type) current_phase): {state} for {self.algo_name} =====****=====")
+                # ask for action in RL_agent to excute in env based on fixed policy,
+                # need the state to store the Q-values and episode num to use it in remainder
+                action = self.rl_agent.action_policy(state, steps_in_episode, [0, 3, 6, 9])
+                print(f"Chosen action for this episode is (in main)  {action}")
 
-
-                # choose an action: phase + duration
-                action = self.rl_agent.action_policy(state, [0, 3, 6, 9])
-                # action =
-
-
-                # Take action in the env (execute phase ) and extract state (inside take action)
                 next_state, reward, current_state, done_flag, total_reward = self.env.take_action(action, self.junction_id)
 
-                # update Q-values using state from the env
-                self.rl_agent.update_q_values(current_state, action, reward, next_state, self.gamma)
+               # update Q-values
+                updated_q_value = self.rl_agent.update_q_values(state, action, reward, next_state, self.gamma)
 
-                # Update state and + rewards
+                # print detailed state, action, reward, Q-value (just for track not needed)
+                print(f"In main2.py ")
+                print(f"State: {current_state}")
+                print(f"Action taken: {action}")
+                print(f"Reward: {reward}")
+                print(f"total_reward: {total_reward}")
+                print(f"Updated Q-value for (state, action): ({current_state}, {action}): {updated_q_value}")
                 state = next_state
-                total_episode_reward += reward  # Add step reward to total episode reward
-                #print(f"Action taken: {action}, Current State: {current_state}, Next State: {next_state}")
+                total_episode_reward += reward
+                print(f"Total reward for episode {episode + 1}: {total_episode_reward}")
 
-                print(f"Action taken: {action},  New State AFTER action : {next_state}")
-                print(f"Reward: {reward} ")
+                done = done_flag
 
-                done = done_flag  # Check if the episode is done
-                steps_in_episode += 1
-                done = done_flag or steps_in_episode >= 100
-
-                # Advance the simulation
                 traci.simulationStep()
+            #avg reward per episode - Bei: not commen practice
+            avg_episode_reward = total_episode_reward / steps_in_episode
+            self.total_episode_reward.append(total_episode_reward)
+            self.avg_episode_rewards.append(avg_episode_reward)
 
-            # Store the total reward for this episode
-            #self.total_rewards.append(total_episode_reward)
-            # Store the total reward for the episode
-            self.total_episode_reward.append(total_episode_reward)  # Total reward for this episode
-            # Compute average reward for the episode
-            total_reward = total_episode_reward / steps_in_episode if steps_in_episode > 0 else 0
-            print(f"Episode {episode + 1} completed. Total Reward: {total_episode_reward}, Average Reward: {total_reward}") # test the avg
-
-            #print(f"Rewa//rd: {reward}, Total Reward (for this step): {total_reward}, Done: {done_flag}")
-
-            # not working proberly can use it for sampling in each 50-100 eps
-           # if (episode + 1) % 100 == 0:
-            #    print(f"Episode {episode + 1} completed with total reward: {total_episode_reward}")
-            # store cumulative reward every 100 episodes
+            # Store a snippet of rewards every 10 episodes xxx
             if (episode + 1) % 100 == 0:
-                avg_reward_sn = sum(self.total_episode_reward[-100:]) / 100  # Average reward over the last 100 episodes
-                self.total_episode_reward_sn.append(avg_reward_sn)
-                print(f"Cumulative reward for the last 100 episodes: {avg_reward_sn}")
+                self.sn_reward.append(total_episode_reward)
+                self.sn_avg_reward.append(avg_episode_reward)
 
+            print(f" (In main2.py) Total reward for episode {episode + 1}: {total_episode_reward}")
+            print(f" (In main2.py) Average reward for episode {episode + 1}: {avg_episode_reward}")
 
-        # End simulation
+        self.display_results()
+
         traci.close()
 
-    def display_results(self):  # not updated yet
-        action_ac = {
-            0: "West-East Green",
-            3: "South-North Green",
-            6: "East-West Green",
-            9: "North-South Green"
+    def display_results(self):
+        phases = {
+            0: "E0",
+            3: "E2",
+            6: "E1",
+            9: "E3",
         }
 
-        print(f"Total rewards for every 100 episodes ({self.algo_name}):")
-        for i, total_reward_episodes in enumerate(self.total_rewards):
-            end_episode = min((i + 1) * 100, self.episodes)
-            print(f"At Episode Num. {end_episode}: Reward: {total_reward_episodes:.2f}")
-
-        print(f"Total reward for the last episode ({self.algo_name}): {self.total_rewards[-1] if self.total_rewards else 0}")
+        print(f"(In main2.py) Total rewards every 100 episodes ({self.algo_name}):")
+        for i, total_reward in enumerate(self.total_episode_reward_sn):
+            print(f"At episode {i * 100 + 100}: Reward: {total_reward:.2f}")
 
         print(f"All episodes completed ({self.algo_name}).")
-        print(f"Updated Q-values ({self.algo_name}):")
+
+        print(f" (In main2.py) Updated Q-values ({self.algo_name}):")
         for state, actions in self.rl_agent.q_values.items():
             print(f"State: {state}")
             for action, q_value in actions.items():
-                phase, duration = action
-                action_a = action_ac.get(phase, "other than what in the desplay dictionary")
-                print(f"  Phase: {action_a} ({phase}), Duration: {duration}, Q-value: {q_value:.4g}")
+                action_a = phases[action]
+                print(f"  Action: {action_a} ({action}), Q-value: {q_value:.4g}")
 
 
 if __name__ == "__main__":
-    # Start SUMO
-    sumo_cmd = ['sumo-gui', '-c', r'C:\Users\psmalz12\OneDrive\PGR\pycharm\RLMODEL5\sumo.sumocfg']
+    sumo_cmd = ['sumo', '-c', r'C:\Users\psmalz12\OneDrive\PGR\pycharm\RLMODEL7\sumo.sumocfg']
     traci.start(sumo_cmd)
 
-    epsilon_point = 50
-    episodes = 1000
-    rl_runner_sumo = RLRunnerSUMO(epsilon_point, RL, "Q-Learning", "J1", episodes)
+    epsilon_point = 1000
+    episodes = 3000
+    episode_numbers = list(range(1, episodes + 1, 100))  # snip only every 10 episodes
 
-    # Run the RL simulation
-    rl_runner_sumo.run()
+    # Init result dictionaries
+    results_q_learning = {}
+    results_baseline = {}
 
+    # Run Q-Learning agent
+    q_learning_runner = RLRunnerSUMO(epsilon_point, RL, "Q-Learning", "J1", episodes)
+    q_learning_runner.run()
 
-    plot_rewards2(rl_runner_sumo.total_rewards)  # Plt rewards
-    rl_runner_sumo.display_results()  # Show results
+    # Store Q-Learning snip result
+    results_q_learning[epsilon_point] = {
+        'sn_rewards': q_learning_runner.sn_reward,
+        'sn_avg_rewards': q_learning_runner.sn_avg_reward
+    }
+
+    # restart SUMO simulation for Baseline
+    traci.start(sumo_cmd)
+
+    # run Baseline agent
+    baseline_runner = RLRunnerSUMO(epsilon_point, Baseline, "Baseline", "J1", episodes)
+    baseline_runner.run()
+
+    # Store Baseline snip results
+    results_baseline[epsilon_point] = {
+        'sn_rewards': baseline_runner.sn_reward,
+        'sn_avg_rewards': baseline_runner.sn_avg_reward
+    }
+
+    plt_title = "Comparison: Q-Learning vs Baseline Performance in SUMO Traffic Control System"
+    plt_total_reward_steps_per_episode33(
+        results_q_learning,
+        results_baseline,
+        episode_numbers,
+        plt_title,
+    )
