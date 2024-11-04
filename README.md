@@ -56,7 +56,7 @@ Here plotting the reward to episodes:
 
 
 
-Here, the Q-values have converged, which indicates that the agent has learned a stable and consistent policy for choosing actions. The agent now knows, for a given state, which actions tend to gain the best long-term rewards.
+Here, the rewards have converged, which indicates that the agent has learned a stable and consistent policy for choosing actions to minimise the negative rewards. The agent now knows which actions are chosen for a given state to gain the best long-term rewards.
 
 
 
