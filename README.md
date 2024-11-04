@@ -32,7 +32,7 @@ Then the reward depends on this highest time step for each lane:
 
                         For Example:
                         
-                              ![image](https://github.com/user-attachments/assets/8279417f-7e43-4623-9760-7d344039479e)
+![image](https://github.com/user-attachments/assets/8279417f-7e43-4623-9760-7d344039479e)
 
 and this is how store state action pairs: 
 where we have 16,384 possible state action pairs 
